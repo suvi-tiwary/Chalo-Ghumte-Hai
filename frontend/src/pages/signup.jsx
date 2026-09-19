@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const apiUrl = import.meta.env.VITE_API_URL || "/api";
+
 const scenes = [
   {
     image:
@@ -92,7 +94,7 @@ export default function Signup() {
     setIsSubmitting(true);
 
     axios
-      .post("/api/signup", form)
+      .post(`${apiUrl}/signup`, form)
       .then(() => navigate("/home"))
       .catch((requestError) => {
         setError(
