@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const apiUrl = import.meta.env.VITE_API_URL || "/api";
+const apiUrl = "https://chalo-ghumte-hai.onrender.com";
 
 const scenes = [
   {
@@ -99,7 +99,7 @@ export default function Signup() {
       .catch((requestError) => {
         setError(
           requestError.response?.data?.message ||
-            "Unable to create your account. Please try again.",
+            "Unable to reach the server. Check the API URL and try again.",
         );
       })
       .finally(() => setIsSubmitting(false));

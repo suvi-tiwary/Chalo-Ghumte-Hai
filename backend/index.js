@@ -8,14 +8,15 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
+const frontendUrl = (process.env.FRONTEND_URL);
 
 app.use(express.json());
 app.use(
     cors({
-        origin: process.env.FRONTEND_URL || "http://localhost:5173",
+        origin: frontendUrl,
     }),
 );
-app.post("/api/signup", signup);
+app.post("/signup", signup);
 
 connectDb()
     .then(() => {
