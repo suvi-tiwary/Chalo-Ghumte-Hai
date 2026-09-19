@@ -8,14 +8,20 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const frontendUrl = (process.env.FRONTEND_URL);
 
 app.use(express.json());
+
 app.use(
     cors({
-        origin: frontendUrl,
-    }),
+        origin: "https://chalo-ghumte-hai.vercel.app",
+        credentials: true,
+    })
 );
+
+app.get("/", (req, res) => {
+    res.send("Chalo Ghumte Hai backend is running 🚀");
+});
+
 app.post("/signup", signup);
 
 connectDb()
