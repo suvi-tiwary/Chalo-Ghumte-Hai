@@ -6,9 +6,10 @@
   "author": "",
   "type": "module",
   "main": "index.js",
-  "scripts": {
-    "dev": "nodemon index.js"
-  },
+"scripts": {
+  "dev": "nodemon index.js",
+  "start": "node index.js"
+},
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
