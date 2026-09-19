@@ -533,7 +533,7 @@ export default function Signup() {
                       required
                       minLength={6}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Create a password"
+                      placeholder="write gmail password"
                       className="
                         h-11
                         w-full
