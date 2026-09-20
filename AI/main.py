@@ -1,5 +1,7 @@
 import os
 import json
+import html
+import re
 import requests
 
 from dotenv import load_dotenv
@@ -450,6 +452,9 @@ Use exactly this structure:
         }
 
 
+# ============================================================
+# CHAT AI
+# ============================================================
 
 def askllm(
     query: str,
@@ -465,33 +470,114 @@ def askllm(
     )
 
     prompt = f"""
-You are "Chalo", the AI travel assistant for "Chalo Ghumte Hai".
+You are "Chalo", the AI travel assistant for
+"Chalo Ghumte Hai".
 
-You are a friendly, practical, and knowledgeable travel assistant.
+You are a friendly, practical and knowledgeable travel assistant.
 
-You can help with: destinations, trip planning, itineraries, transport, routes, hotels, budgets, food, local culture, activities, packing, travel safety, visas, weather, and travel tips.
+You can help with:
 
-CRITICAL RESPONSE GUIDELINES:
-1. BE CONCISE: Keep answers brief and directly to the point. Avoid fluff, long introductions, or unnecessary explanations. Aim for under 200 words unless the user explicitly asks for a detailed breakdown.
-2. USE STRUCTURE: Always organize your response for maximum readability:
-   - Use **Bold Headings** for different sections (e.g., **Top Picks**, **Budget**, **Tips**).
-   - Use bullet points (-) or numbered lists for facts, steps, or recommendations.
-   - Keep paragraphs to a maximum of 2–3 short sentences.
-3. STAY FOCUSED: Strictly answer travel-related queries. Politely decline off-topic questions.
-4. BE ACTIONABLE: Provide practical, direct advice.
-5. CLOSING: End with exactly ONE brief, relevant follow-up question to keep the conversation helpful and engaging.
+- destinations
+- trip planning
+- itineraries
+- transport
+- routes
+- hotels and stays
+- budgets
+- food
+- local culture
+- activities
+- packing
+- travel safety
+- visas
+- weather
+- travel tips
 
-Conversation History:
+IMPORTANT:
+
+Stay focused on travel.
+
+If the user asks something unrelated to travel, reply exactly:
+
+"I can help with travel plans, destinations, routes, stays, food, and travel tips."
+
+Do not pretend to have live information if you don't have it.
+
+Do not invent:
+- current prices
+- hotel availability
+- current closures
+- current weather
+- train/flight availability
+
+    Keep the answer under 120 words.
+
+    Use this simple format when useful:
+    Answer: one direct sentence.
+    - Point one
+    - Point two
+    - Point three
+
+    Use no HTML tags, markdown tables, code fences, emojis, or long headings.
+    Use at most four short bullet points. Ask at most one short follow-up
+    question, and only when the request cannot be answered without it.
+
+If important trip details are missing, ask one useful follow-up question.
+
+Use Indian rupees when discussing Indian travel budgets unless
+the user asks for another currency.
+
+Conversation history:
+
 {history_text}
 
-User Query: {query}
+Current user question:
 
-Response:
+{query}
 """
-    
-    # TODO: Replace the line below with your actual LLM API call
-    # return your_llm_client.generate(prompt)
-    return prompt  # Returning prompt for demonstration purposes
+
+    response = llm.invoke(prompt)
+
+    answer = response.content
+
+    if isinstance(answer, list):
+
+        answer = "".join(
+            item.get("text", "")
+            for item in answer
+            if isinstance(item, dict)
+        )
+
+    answer = html.unescape(str(answer))
+    answer = re.sub(r"```(?:text|markdown|html)?", "", answer, flags=re.IGNORECASE)
+    answer = re.sub(r"</?(?:br|p|div|li|ul|ol|strong|em|b|i|h[1-6])[^>]*>", "\n", answer, flags=re.IGNORECASE)
+    answer = re.sub(r"<[^>]+>", "", answer)
+    answer = re.sub(r"\|[^\n]*\|", "", answer)
+    answer = re.sub(r"\n{3,}", "\n\n", answer)
+    return answer.strip()
+
+
+# ============================================================
+# API ROUTES
+# ============================================================
+
+@app.get("/")
+def root():
+
+    return {
+        "message": "Chalo Ghumte Hai AI backend is running 🚀"
+    }
+
+
+@app.get("/health")
+def health():
+
+    return {
+        "status": "ok",
+        "ai": "Groq",
+        "service": "Chalo Ghumte Hai",
+    }
+
 
 # ============================================================
 # CHAT ENDPOINT
