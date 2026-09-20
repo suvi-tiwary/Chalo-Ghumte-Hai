@@ -165,7 +165,7 @@ function TravelChat() {
         {
           role: "assistant",
           content:
-            "Sorry, I couldn't connect to the travel AI right now. Please make sure the AI backend is running on http://localhost:8000.",
+            "Sorry, I couldn't connect to the travel AI right now. Please try again in a moment.",
         },
       ]);
 
