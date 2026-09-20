@@ -9,6 +9,9 @@ body {
 }
 
 * { box-sizing: border-box; }
+::selection { background: #e9c46a; color: #10110f; }
+a, button, input, select { -webkit-tap-highlight-color: transparent; }
+button, a { transition: transform .25s ease, background-color .25s ease, color .25s ease, border-color .25s ease; }
 .app-shell { background: radial-gradient(circle at 80% 0%, #28352f 0, #10110f 38rem); }
 .brand-mark { font-size: 11px; font-weight: 500; letter-spacing: .28em; }
 .quiet-link { color: rgb(255 255 255 / .58); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; transition: color .2s; }
@@ -18,17 +21,46 @@ body {
 .gold-button { align-items: center; background: #e9c46a; color: #10110f; display: inline-flex; gap: 2rem; padding: 1.1rem 1.4rem; font-size: 10px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
 .gold-button:hover { background: #f3d98b; }
 .planner-panel, .result-panel { background: rgb(24 25 22 / .82); border: 1px solid rgb(255 255 255 / .1); }
+.planner-panel { box-shadow: 0 30px 80px rgb(0 0 0 / .2); overflow: hidden; }
+.planner-intro { align-items: center; display: grid; gap: 4rem; grid-template-columns: minmax(0, 1fr) 360px; }
+.planner-scenes { height: 250px; position: relative; }
+.planner-scene { background-position: center; background-size: cover; box-shadow: 0 18px 36px rgb(0 0 0 / .3); height: 190px; position: absolute; width: 145px; }
+.planner-scene::after { background: linear-gradient(transparent 45%, rgb(0 0 0 / .8)); content: ""; inset: 0; position: absolute; }
+.planner-scene span { bottom: 1rem; font-size: 9px; left: 1rem; letter-spacing: .14em; position: absolute; text-transform: uppercase; z-index: 1; }
+.planner-scene-1 { left: 0; top: 2rem; transform: rotate(-7deg); }
+.planner-scene-2 { left: 6.5rem; top: 0; transform: rotate(3deg); z-index: 2; }
+.planner-scene-3 { right: 0; top: 2rem; transform: rotate(8deg); z-index: 1; }
+.planner-section-heading { align-items: center; display: flex; gap: 1rem; padding: 2rem 2rem 1.25rem; }
+.planner-section-heading span { color: #e9c46a; font-size: 10px; letter-spacing: .2em; }
+.planner-section-heading p { color: rgb(255 255 255 / .72); font-family: "Playfair Display", serif; font-size: 1.15rem; margin: 0; }
 .field-label { color: rgb(255 255 255 / .42); display: block; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; }
 .field-label input, .field-label select { background: transparent; border: 0; color: #f5f0e7; display: block; font-family: "Playfair Display", serif; font-size: 1.55rem; letter-spacing: 0; margin-top: .75rem; outline: 0; width: 100%; }
 .field-label input::placeholder { color: rgb(255 255 255 / .2); }
+.field-label input:focus, .field-label select:focus { color: #e9c46a; }
 .field-label select option { background: #181916; }
 .interest-pill { border: 1px solid rgb(255 255 255 / .14); border-radius: 999px; color: rgb(255 255 255 / .55); font-size: 10px; letter-spacing: .12em; padding: .75rem 1.1rem; text-transform: uppercase; }
 .interest-pill-active { background: #e9c46a; border-color: #e9c46a; color: #10110f; }
 .planner-submit { align-items: center; background: #e9c46a; border: 0; color: #10110f; display: flex; font-size: 10px; font-weight: 600; justify-content: space-between; letter-spacing: .25em; padding: 1.5rem 2rem; text-transform: uppercase; width: 100%; }
 .result-panel { border: 0; padding: 2rem; }
+.result-hero { align-items: flex-end; background-position: center; background-size: cover; display: flex; min-height: 530px; overflow: hidden; padding: 3rem; position: relative; }
+.result-hero::before { background: linear-gradient(0deg, rgb(0 0 0 / .82), transparent 70%), linear-gradient(90deg, rgb(0 0 0 / .38), transparent); content: ""; inset: 0; position: absolute; }
+.result-hero-copy, .result-hero-caption { position: relative; z-index: 1; }
+.result-hero-caption { bottom: 2rem; font-size: 9px; letter-spacing: .24em; position: absolute; right: 2rem; text-transform: uppercase; writing-mode: vertical-rl; }
+.section-title { font-family: "Playfair Display", serif; font-size: clamp(2.2rem, 5vw, 4rem); line-height: 1; }
+.itinerary-card { transition: border-color .3s ease, transform .3s ease; }
+.itinerary-card:hover { border-color: rgb(233 196 106 / .5); transform: translateX(6px); }
+.activity-line { border-left: 1px solid rgb(233 196 106 / .5); padding-left: 1rem; }
 .cinema-home { min-height: 100vh; overflow: hidden; position: relative; background: #10110f; }
 .scene-image { background-position: center; background-size: cover; inset: -3%; opacity: 0; position: absolute; transform: scale(1.06); transition: opacity 2s ease, transform 7s ease; }
 .scene-image-active { opacity: 1; transform: scale(1); }
 .scene-shade { background: linear-gradient(90deg, rgb(0 0 0 / .78), rgb(0 0 0 / .18) 70%), linear-gradient(0deg, #10110f, transparent 36%); inset: 0; position: absolute; }
 .hero-title { font-family: "Playfair Display", serif; font-size: clamp(4.7rem, 11vw, 9.5rem); letter-spacing: -.07em; line-height: .78; }
 .hero-title span { margin-left: clamp(1.5rem, 7vw, 7rem); }
+@media (max-width: 700px) {
+  .planner-intro { display: block; }
+  .planner-scenes { height: 185px; margin: 3rem 0 -1rem; transform: scale(.82); transform-origin: left center; }
+  .planner-section-heading { padding-left: 1.5rem; }
+  .result-hero { min-height: 470px; padding: 1.5rem; }
+  .result-hero-caption { bottom: 1.5rem; right: 1.25rem; }
+  .result-panel { padding: 1.5rem; }
+}

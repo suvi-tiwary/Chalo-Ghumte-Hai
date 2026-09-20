@@ -3,25 +3,17 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from tavily import TavilyClient
 
+
 import requests
 import os
 import json
 
-
-# ============================================================
-# ENVIRONMENT
-# ============================================================
 
 load_dotenv()
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
-
-
-# ============================================================
-# CLIENTS
-# ============================================================
 
 tavily = TavilyClient(
     api_key=TAVILY_API_KEY
@@ -33,10 +25,6 @@ llm = ChatGroq(
     temperature=0.2
 )
 
-
-# ============================================================
-# WEATHER
-# ============================================================
 
 def get_weather(city: str) -> str:
 
@@ -74,10 +62,6 @@ def get_weather(city: str) -> str:
 
         return f"Weather unavailable: {str(e)}"
 
-
-# ============================================================
-# DESTINATION SEARCH
-# ============================================================
 
 def search_destination(city: str) -> str:
 
@@ -117,9 +101,6 @@ def search_destination(city: str) -> str:
         return f"Destination search failed: {str(e)}"
 
 
-# ============================================================
-# ACTIVITIES SEARCH
-# ============================================================
 
 def search_activities(
     city: str,
@@ -163,10 +144,6 @@ def search_activities(
         return f"Activity search failed: {str(e)}"
 
 
-# ============================================================
-# ROUTE SEARCH
-# ============================================================
-
 def search_route(
     starting_point: str,
     destination: str
@@ -208,9 +185,6 @@ def search_route(
         return f"Route search failed: {str(e)}"
 
 
-# ============================================================
-# TRIP PLANNER
-# ============================================================
 
 def plan_trip(
     destination: str,
@@ -227,11 +201,6 @@ def plan_trip(
         if interests
         else "general sightseeing"
     )
-
-
-    # ========================================================
-    # 1. COLLECT REAL DATA
-    # ========================================================
 
     print("🌤️ Getting weather...")
 
