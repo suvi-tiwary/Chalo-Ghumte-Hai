@@ -64,3 +64,21 @@ button, a { transition: transform .25s ease, background-color .25s ease, color .
   .result-hero-caption { bottom: 1.5rem; right: 1.25rem; }
   .result-panel { padding: 1.5rem; }
 }
+
+
+.scene-image {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.08);
+  transition:
+    opacity 1.8s ease,
+    transform 7s ease;
+}
+
+.scene-image-active {
+  opacity: 1;
+  transform: scale(1);
+}

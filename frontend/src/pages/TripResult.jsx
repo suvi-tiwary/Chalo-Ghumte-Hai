@@ -1,449 +1,798 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  ArrowRight,
-  ArrowUpRight,
-  CalendarDays,
+  ArrowLeft,
   MapPin,
-  Plane,
+  CalendarDays,
+  Users,
+  Wallet,
+  Cloud,
   CloudSun,
-  Sparkles,
-  Bookmark,
-  Compass,
+  Sun,
+  Navigation,
   Clock3,
+  Sparkles,
+  Plane,
+  Train,
+  Bus,
+  Car,
+  Hotel,
+  Utensils,
+  Camera,
+  Compass,
+  Route,
+  ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
+
+const transportIcons = {
+  flight: Plane,
+  train: Train,
+  bus: Bus,
+  car: Car,
+  taxi: Car,
+};
 
 export default function TripResult() {
   const { state } = useLocation();
+  const navigate = useNavigate();
+
   const trip = state?.trip;
+
+  const [openDay, setOpenDay] = useState(0);
+
+  // ------------------------------------------
+  // SAFETY: Prevent undefined/null crashes
+  // ------------------------------------------
 
   if (!trip) {
     return (
-      <main className="min-h-screen bg-[#061019] text-white flex items-center justify-center px-6">
-        <div className="text-center">
-          <p className="text-[#e8bd62] uppercase tracking-[0.3em] text-xs">
-            No journey loaded
-          </p>
+      <div className="min-h-screen bg-[#080808] text-white flex items-center justify-center px-6">
+        <div className="text-center max-w-md">
+          <Compass className="mx-auto mb-5 h-14 w-14 text-orange-400" />
 
-          <h1 className="mt-5 font-serif text-5xl">
-            Start with a destination.
+          <h1 className="text-3xl font-bold mb-3">
+            No trip found
           </h1>
 
-          <Link
-            to="/plan-trip"
-            className="mt-8 inline-flex rounded-full bg-[#e9bd61] px-7 py-3 text-black"
+          <p className="text-white/50 mb-7">
+            Your trip information isn't available anymore. Create a new
+            journey to continue.
+          </p>
+
+          <button
+            onClick={() => navigate("/plan-trip")}
+            className="px-6 py-3 rounded-full bg-orange-500 hover:bg-orange-400 transition font-semibold"
           >
-            Open planner
-          </Link>
+            Plan a new trip
+          </button>
         </div>
-      </main>
+      </div>
     );
   }
 
-  const heroImage =
-    trip.hero_image ||
-    trip.image ||
-    "https://images.unsplash.com/photo-1524492412937-b28074a5d7da?auto=format&fit=crop&w=2200&q=90";
+  // ------------------------------------------
+  // NORMALIZE BACKEND DATA
+  // ------------------------------------------
+
+  const destination =
+    trip.destination ||
+    trip.city ||
+    trip.location ||
+    "Your Destination";
+
+  const startingPoint =
+    trip.starting_point ||
+    trip.startingPoint ||
+    trip.from ||
+    "Your Starting Point";
+
+  const days =
+    Number(trip.days) ||
+    Number(trip.duration) ||
+    trip.itinerary?.length ||
+    1;
+
+  const travelers =
+    Number(trip.travelers) ||
+    Number(trip.people) ||
+    1;
+
+  const budget =
+    trip.budget ||
+    trip.estimated_budget ||
+    trip.total_budget ||
+    "—";
+
+  const weather = trip.weather || {};
+
+  const temperature =
+    weather.temperature ??
+    weather.temp ??
+    weather.temperature_c ??
+    weather.current_temperature ??
+    "—";
+
+  const weatherCondition =
+    weather.condition ??
+    weather.description ??
+    weather.weather ??
+    "Weather information unavailable";
+
+  const weatherIcon =
+    String(weatherCondition).toLowerCase().includes("rain")
+      ? CloudSun
+      : String(weatherCondition).toLowerCase().includes("sun")
+      ? Sun
+      : Cloud;
+
+  const WeatherIcon = weatherIcon;
+
+  const route = trip.route || trip.travel_route || {};
+
+  const recommendedTransport =
+    route.recommended_transport ||
+    route.recommendedTransport ||
+    route.transport ||
+    trip.transport ||
+    "Flexible";
+
+  const routeDistance =
+    route.distance ||
+    route.total_distance ||
+    route.km ||
+    "—";
+
+  const routeDuration =
+    route.duration ||
+    route.travel_time ||
+    route.time ||
+    "—";
+
+  const itinerary = Array.isArray(trip.itinerary)
+    ? trip.itinerary
+    : Array.isArray(trip.days)
+    ? trip.days
+    : [];
+
+  // ------------------------------------------
+  // HELPER
+  // ------------------------------------------
+
+  const getTransportIcon = () => {
+    const value = String(recommendedTransport).toLowerCase();
+
+    if (value.includes("flight") || value.includes("plane")) {
+      return Plane;
+    }
+
+    if (value.includes("train")) {
+      return Train;
+    }
+
+    if (value.includes("bus")) {
+      return Bus;
+    }
+
+    return Car;
+  };
+
+  const TransportIcon = getTransportIcon();
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#061019] text-[#f7f2e8]">
+    <div className="min-h-screen bg-[#080808] text-white overflow-x-hidden">
 
-      {/* atmospheric background */}
-      <div className="pointer-events-none fixed inset-0 -z-0">
-        <div className="absolute left-[-10%] top-[20%] h-[500px] w-[500px] rounded-full bg-[#d89c45]/10 blur-[150px]" />
-        <div className="absolute right-[-10%] top-[50%] h-[500px] w-[500px] rounded-full bg-[#315d73]/10 blur-[150px]" />
+      {/* ========================================
+          BACKGROUND
+      ======================================== */}
+
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-300px] left-[-200px] w-[600px] h-[600px] bg-orange-500/10 blur-[150px] rounded-full" />
+
+        <div className="absolute top-[30%] right-[-250px] w-[600px] h-[600px] bg-purple-500/10 blur-[160px] rounded-full" />
+
+        <div className="absolute bottom-[-300px] left-[20%] w-[700px] h-[500px] bg-blue-500/5 blur-[160px] rounded-full" />
       </div>
 
-      {/* NAVBAR */}
-      <header className="absolute left-0 right-0 top-0 z-30">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-7 md:px-10">
+      {/* ========================================
+          NAVBAR
+      ======================================== */}
 
-          <Link
-            to="/home"
-            className="font-serif text-xl tracking-wide"
+      <nav className="relative z-20 border-b border-white/10 bg-black/30 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 h-20 flex items-center justify-between">
+
+          <button
+            onClick={() => navigate("/plan-trip")}
+            className="flex items-center gap-2 text-white/60 hover:text-white transition"
           >
-            ✦ Chalo Ghumte Hai
-          </Link>
+            <ArrowLeft size={19} />
+            <span className="hidden sm:block">
+              Plan another trip
+            </span>
+          </button>
 
-          <div className="flex items-center gap-3">
-            <Link
-              to="/home"
-              className="hidden rounded-full border border-white/15 px-5 py-2 text-sm text-white/70 backdrop-blur-md transition hover:bg-white/10 md:block"
-            >
-              Home
-            </Link>
-
-            <Link
-              to="/plan-trip"
-              className="rounded-full border border-white/20 px-5 py-2 text-sm transition hover:bg-white hover:text-black"
-            >
-              New journey
-            </Link>
+          <div className="font-bold tracking-tight text-lg">
+            CHALO <span className="text-orange-400">GHUMTE HAI</span>
           </div>
 
+          <div className="flex items-center gap-2 text-white/40 text-sm">
+            <Sparkles size={16} />
+            AI Trip
+          </div>
         </div>
-      </header>
+      </nav>
 
-      {/* HERO */}
-      <section className="relative min-h-[90vh]">
+      <main className="relative z-10 max-w-7xl mx-auto px-5 md:px-8 py-10 md:py-14">
 
-        <motion.div
-          initial={{ scale: 1.08 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 2, ease: "easeOut" }}
-          className="absolute inset-0"
+        {/* ========================================
+            HERO
+        ======================================== */}
+
+        <motion.section
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+          className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] p-7 md:p-12"
         >
-          <img
-            src={heroImage}
-            alt={trip.destination}
-            className="h-full w-full object-cover"
-          />
-        </motion.div>
 
-        {/* cinematic overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#061019] via-[#061019]/70 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#061019] via-transparent to-black/30" />
+          {/* Decorative circles */}
 
-        <div className="relative z-10 mx-auto flex min-h-[90vh] max-w-7xl items-end px-6 pb-20 md:px-10">
+          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full border border-white/10" />
+          <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full border border-white/10" />
 
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3 }}
-            className="max-w-3xl"
-          >
+          <div className="relative">
 
-            <div className="mb-6 flex items-center gap-3 text-xs uppercase tracking-[0.35em] text-[#e9bd61]">
-              <Sparkles size={15} />
-              Your journey is ready
+            <div className="flex items-center gap-2 text-orange-400 text-sm font-medium mb-5">
+              <Sparkles size={16} />
+              YOUR AI-GENERATED JOURNEY
             </div>
 
-            <h1 className="font-serif text-7xl leading-[0.9] tracking-[-0.04em] md:text-[9rem]">
-              {trip.destination}
+            <h1 className="text-5xl md:text-7xl font-serif tracking-tight leading-[0.95] max-w-4xl">
+              Let's go to{" "}
+              <span className="text-orange-400">
+                {destination}
+              </span>
+              .
             </h1>
 
-            {trip.tagline && (
-              <p className="mt-6 font-serif text-2xl italic text-[#e9bd61] md:text-3xl">
-                {trip.tagline}
-              </p>
-            )}
-
-            <p className="mt-7 max-w-2xl text-base leading-8 text-white/70 md:text-lg">
-              {trip.trip_summary}
+            <p className="mt-6 text-white/50 max-w-2xl text-base md:text-lg leading-relaxed">
+              Your personalized journey is ready. We've organized
+              your route, weather, budget and day-by-day experiences
+              into one simple travel plan.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-3">
+            {/* Trip quick information */}
 
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-5 py-3 backdrop-blur-xl">
-                <CalendarDays size={15} className="text-[#e9bd61]" />
-                {trip.itinerary?.length || 0} Days
-              </div>
+            <div className="flex flex-wrap gap-3 mt-9">
 
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-5 py-3 backdrop-blur-xl">
-                <MapPin size={15} className="text-[#e9bd61]" />
-                {trip.destination}
-              </div>
+              <InfoPill
+                icon={CalendarDays}
+                text={`${days} ${days === 1 ? "Day" : "Days"}`}
+              />
 
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-5 py-3 backdrop-blur-xl">
-                <Compass size={15} className="text-[#e9bd61]" />
-                Custom Plan
-              </div>
+              <InfoPill
+                icon={Users}
+                text={`${travelers} ${
+                  travelers === 1 ? "Traveler" : "Travelers"
+                }`}
+              />
+
+              <InfoPill
+                icon={Wallet}
+                text={
+                  typeof budget === "number"
+                    ? `₹${budget.toLocaleString("en-IN")}`
+                    : String(budget)
+                }
+              />
 
             </div>
-
-          </motion.div>
-
-        </div>
-
-        <div className="absolute bottom-8 right-8 hidden text-xs uppercase tracking-[0.3em] text-white/40 md:block">
-          Scroll to explore ↓
-        </div>
-
-      </section>
-
-      {/* QUICK INFO */}
-      <section className="relative z-10 mx-auto -mt-10 max-w-7xl px-5 md:px-10">
-
-        <div className="grid gap-3 md:grid-cols-3">
-
-          <InfoCard
-            icon={<CloudSun />}
-            label="Weather"
-            title={trip.weather?.temperature || "Current"}
-            subtitle={trip.weather?.condition}
-            description={trip.weather?.summary}
-          />
-
-          <InfoCard
-            icon={<Plane />}
-            label="Getting there"
-            title={trip.route?.recommended_transport || "Explore"}
-            subtitle="Recommended route"
-            description={trip.route?.summary}
-          />
-
-          <InfoCard
-            icon={<Sparkles />}
-            label="Trip mood"
-            title={trip.trip_type || "Adventure"}
-            subtitle="Made around you"
-            description={trip.trip_summary}
-          />
-
-        </div>
-
-      </section>
-
-      {/* ITINERARY */}
-      <section className="mx-auto max-w-7xl px-5 py-32 md:px-10">
-
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-
-          <div>
-            <p className="text-xs uppercase tracking-[0.35em] text-[#e9bd61]">
-              The journey
-            </p>
-
-            <h2 className="mt-4 font-serif text-5xl md:text-7xl">
-              Take the long way.
-            </h2>
           </div>
+        </motion.section>
 
-          <p className="max-w-sm text-sm leading-7 text-white/40">
-            Every day is arranged around places worth remembering,
-            not simply places worth checking off.
-          </p>
+        {/* ========================================
+            STATS
+        ======================================== */}
 
-        </div>
+        <motion.section
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.6 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5"
+        >
 
-        <div className="relative mt-20">
+          {/* Weather */}
 
-          {/* timeline line */}
-          <div className="absolute left-[25px] top-0 hidden h-full w-px bg-gradient-to-b from-[#e9bd61] via-white/10 to-transparent md:block" />
+          <InfoCard>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/40 text-sm">
+                  Weather
+                </p>
 
-          <div className="space-y-8">
+                <p className="text-2xl font-semibold mt-2">
+                  {temperature}
+                </p>
 
-            {trip.itinerary?.map((day, index) => (
+                <p className="text-white/50 text-sm mt-1 capitalize">
+                  {weatherCondition}
+                </p>
+              </div>
 
-              <motion.article
-                key={day.day}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.15 }}
-                transition={{ duration: 0.6 }}
-                className="relative grid gap-6 md:grid-cols-[70px_1fr]"
-              >
+              <div className="w-14 h-14 rounded-2xl bg-blue-400/10 flex items-center justify-center">
+                <WeatherIcon
+                  size={27}
+                  className="text-blue-300"
+                />
+              </div>
+            </div>
+          </InfoCard>
 
-                {/* day number */}
-                <div className="relative z-10 hidden md:block">
+          {/* Route */}
 
-                  <div className="flex h-[52px] w-[52px] items-center justify-center rounded-full border border-[#e9bd61]/50 bg-[#061019] text-sm text-[#e9bd61]">
-                    {String(index + 1).padStart(2, "0")}
-                  </div>
+          <InfoCard>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/40 text-sm">
+                  Recommended Route
+                </p>
 
-                </div>
+                <p className="text-xl font-semibold mt-2 capitalize">
+                  {String(recommendedTransport)}
+                </p>
 
-                <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035] backdrop-blur-xl transition duration-500 hover:border-[#e9bd61]/30">
+                <p className="text-white/50 text-sm mt-1">
+                  {routeDistance !== "—"
+                    ? `${routeDistance}`
+                    : "Route details available"}
+                </p>
+              </div>
 
-                  <div className="p-7 md:p-10">
+              <div className="w-14 h-14 rounded-2xl bg-orange-400/10 flex items-center justify-center">
+                <TransportIcon
+                  size={27}
+                  className="text-orange-300"
+                />
+              </div>
+            </div>
+          </InfoCard>
 
-                    <div className="flex items-start justify-between gap-5">
+          {/* Travel Time */}
 
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-[#e9bd61]">
-                          Day {String(day.day).padStart(2, "0")}
-                        </p>
+          <InfoCard>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white/40 text-sm">
+                  Travel Time
+                </p>
 
-                        <h3 className="mt-3 font-serif text-3xl md:text-4xl">
-                          {day.title}
-                        </h3>
-                      </div>
+                <p className="text-2xl font-semibold mt-2">
+                  {routeDuration}
+                </p>
 
-                      <ArrowUpRight className="text-white/30" />
+                <p className="text-white/50 text-sm mt-1">
+                  Estimated journey
+                </p>
+              </div>
 
-                    </div>
+              <div className="w-14 h-14 rounded-2xl bg-purple-400/10 flex items-center justify-center">
+                <Clock3
+                  size={27}
+                  className="text-purple-300"
+                />
+              </div>
+            </div>
+          </InfoCard>
 
-                    <div className="mt-10 grid gap-4 md:grid-cols-2">
+        </motion.section>
 
-                      {day.activities?.map((activity, activityIndex) => (
+        {/* ========================================
+            ROUTE
+        ======================================== */}
 
-                        <div
-                          key={activityIndex}
-                          className="group rounded-2xl border border-white/8 bg-black/20 p-5 transition hover:bg-white/[0.06]"
-                        >
+        <motion.section
+          initial={{ opacity: 0, y: 25 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-5 rounded-[1.7rem] border border-white/10 bg-white/[0.035] p-6 md:p-8"
+        >
 
-                          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[#e9bd61]">
-                            <Clock3 size={13} />
-                            {activity.time}
-                          </div>
+          <div className="flex items-center gap-3 mb-7">
 
-                          <h4 className="mt-4 font-serif text-xl">
-                            {activity.place}
-                          </h4>
-
-                          <p className="mt-2 text-sm leading-6 text-white/40">
-                            {activity.description}
-                          </p>
-
-                          <div className="mt-5 flex items-center gap-2 text-xs text-white/30">
-                            <MapPin size={12} />
-                            {activity.location || trip.destination}
-                          </div>
-
-                        </div>
-
-                      ))}
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </motion.article>
-
-            ))}
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* EXPERIENCES */}
-      {trip.top_experiences?.length > 0 && (
-        <section className="mx-auto max-w-7xl px-5 pb-32 md:px-10">
-
-          <p className="text-xs uppercase tracking-[0.35em] text-[#e9bd61]">
-            Don't miss these
-          </p>
-
-          <h2 className="mt-4 font-serif text-5xl md:text-7xl">
-            Experiences worth the detour.
-          </h2>
-
-          <div className="mt-12 grid gap-4 md:grid-cols-3">
-
-            {trip.top_experiences.map((experience, index) => (
-
-              <motion.div
-                key={index}
-                whileHover={{ y: -8 }}
-                transition={{ duration: 0.3 }}
-                className="group min-h-[260px] rounded-[28px] border border-white/10 bg-gradient-to-br from-white/[0.07] to-transparent p-7"
-              >
-
-                <span className="text-sm text-[#e9bd61]">
-                  0{index + 1}
-                </span>
-
-                <h3 className="mt-16 font-serif text-3xl">
-                  {experience.name || experience}
-                </h3>
-
-                {experience.description && (
-                  <p className="mt-3 text-sm leading-6 text-white/40">
-                    {experience.description}
-                  </p>
-                )}
-
-                <ArrowRight className="mt-8 text-white/30 transition group-hover:translate-x-2 group-hover:text-[#e9bd61]" />
-
-              </motion.div>
-
-            ))}
-
-          </div>
-
-        </section>
-      )}
-
-      {/* FINAL CTA */}
-      <section className="mx-auto max-w-7xl px-5 pb-16 md:px-10">
-
-        <div className="relative overflow-hidden rounded-[32px] border border-[#e9bd61]/20 bg-gradient-to-r from-[#211a10] to-[#101923] p-8 md:p-14">
-
-          <div className="relative z-10 flex flex-col justify-between gap-8 md:flex-row md:items-center">
+            <div className="w-11 h-11 rounded-xl bg-orange-400/10 flex items-center justify-center">
+              <Route
+                size={20}
+                className="text-orange-400"
+              />
+            </div>
 
             <div>
-              <p className="font-serif text-3xl italic text-[#e9bd61]">
-                Ready for your next adventure?
+              <h2 className="text-xl font-semibold">
+                Your Route
+              </h2>
+
+              <p className="text-sm text-white/40">
+                How your journey begins
               </p>
-
-              <p className="mt-3 text-white/45">
-                Save this journey or start somewhere completely new.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-
-              <button className="flex items-center gap-2 rounded-full bg-[#e9bd61] px-7 py-3 text-sm font-medium text-black transition hover:scale-105">
-                <Bookmark size={15} />
-                Save Trip
-              </button>
-
-              <Link
-                to="/plan-trip"
-                className="flex items-center gap-2 rounded-full border border-white/20 px-7 py-3 text-sm transition hover:bg-white hover:text-black"
-              >
-                Plan Another Trip
-                <ArrowRight size={15} />
-              </Link>
-
             </div>
 
           </div>
 
-        </div>
+          <div className="flex items-center">
 
-      </section>
+            <div className="flex items-center gap-4 min-w-0">
 
-    </main>
+              <div className="w-3 h-3 rounded-full bg-white shrink-0" />
+
+              <div>
+                <p className="text-xs text-white/40">
+                  STARTING FROM
+                </p>
+
+                <p className="font-medium truncate">
+                  {startingPoint}
+                </p>
+              </div>
+
+            </div>
+
+            <div className="flex-1 mx-5 relative">
+
+              <div className="border-t border-dashed border-white/20" />
+
+              <Navigation
+                size={17}
+                className="absolute left-1/2 -translate-x-1/2 -top-2.5 text-orange-400"
+              />
+
+            </div>
+
+            <div className="flex items-center gap-4 min-w-0">
+
+              <MapPin
+                size={20}
+                className="text-orange-400 shrink-0"
+              />
+
+              <div>
+                <p className="text-xs text-white/40">
+                  DESTINATION
+                </p>
+
+                <p className="font-medium truncate">
+                  {destination}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </motion.section>
+
+        {/* ========================================
+            ITINERARY
+        ======================================== */}
+
+        <section className="mt-12">
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <p className="text-orange-400 text-sm font-medium mb-3">
+              THE ADVENTURE
+            </p>
+
+            <h2 className="text-4xl md:text-5xl font-serif">
+              Your journey,
+              <br />
+              <span className="text-white/40">
+                day by day.
+              </span>
+            </h2>
+          </motion.div>
+
+          <div className="mt-8 space-y-4">
+
+            {itinerary.length > 0 ? (
+
+              itinerary.map((day, index) => {
+
+                const dayNumber =
+                  day.day ||
+                  day.day_number ||
+                  index + 1;
+
+                const title =
+                  day.title ||
+                  day.name ||
+                  day.theme ||
+                  `Day ${dayNumber}`;
+
+                const activities =
+                  Array.isArray(day.activities)
+                    ? day.activities
+                    : Array.isArray(day.places)
+                    ? day.places
+                    : Array.isArray(day.plan)
+                    ? day.plan
+                    : [];
+
+                const description =
+                  day.description ||
+                  day.summary ||
+                  "";
+
+                const isOpen = openDay === index;
+
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{
+                      opacity: 1,
+                      y: 0,
+                    }}
+                    viewport={{
+                      once: true,
+                    }}
+                    transition={{
+                      delay: index * 0.05,
+                    }}
+                    className="border border-white/10 rounded-[1.5rem] overflow-hidden bg-white/[0.025]"
+                  >
+
+                    {/* DAY HEADER */}
+
+                    <button
+                      onClick={() =>
+                        setOpenDay(
+                          isOpen ? -1 : index
+                        )
+                      }
+                      className="w-full p-5 md:p-6 flex items-center gap-5 text-left hover:bg-white/[0.035] transition"
+                    >
+
+                      <div className="w-14 h-14 rounded-2xl bg-orange-400/10 flex items-center justify-center shrink-0">
+
+                        <span className="text-orange-400 font-bold">
+                          {String(dayNumber).padStart(
+                            2,
+                            "0"
+                          )}
+                        </span>
+
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+
+                        <p className="text-xs text-orange-400 uppercase tracking-wider">
+                          Day {dayNumber}
+                        </p>
+
+                        <h3 className="text-lg md:text-xl font-semibold mt-1 truncate">
+                          {title}
+                        </h3>
+
+                      </div>
+
+                      <motion.div
+                        animate={{
+                          rotate: isOpen ? 180 : 0,
+                        }}
+                      >
+                        <ChevronDown
+                          size={20}
+                          className="text-white/40"
+                        />
+                      </motion.div>
+
+                    </button>
+
+                    {/* DAY CONTENT */}
+
+                    {isOpen && (
+                      <motion.div
+                        initial={{
+                          opacity: 0,
+                          height: 0,
+                        }}
+                        animate={{
+                          opacity: 1,
+                          height: "auto",
+                        }}
+                        exit={{
+                          opacity: 0,
+                          height: 0,
+                        }}
+                        className="px-5 md:px-6 pb-6"
+                      >
+
+                        {description && (
+                          <p className="text-white/50 leading-relaxed mb-6 max-w-3xl">
+                            {description}
+                          </p>
+                        )}
+
+                        {activities.length > 0 ? (
+
+                          <div className="space-y-3">
+
+                            {activities.map(
+                              (activity, activityIndex) => {
+
+                                const activityText =
+                                  typeof activity ===
+                                  "string"
+                                    ? activity
+                                    : activity?.name ||
+                                      activity?.activity ||
+                                      activity?.place ||
+                                      activity?.description ||
+                                      "Explore this place";
+
+                                const time =
+                                  typeof activity ===
+                                  "object"
+                                    ? activity?.time ||
+                                      activity?.timing ||
+                                      ""
+                                    : "";
+
+                                return (
+                                  <div
+                                    key={
+                                      activityIndex
+                                    }
+                                    className="flex gap-4 p-4 rounded-xl bg-black/30 border border-white/5"
+                                  >
+
+                                    <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
+                                      {activityIndex ===
+                                      0 ? (
+                                        <Camera
+                                          size={17}
+                                          className="text-orange-300"
+                                        />
+                                      ) : activityIndex ===
+                                        1 ? (
+                                        <Utensils
+                                          size={17}
+                                          className="text-orange-300"
+                                        />
+                                      ) : (
+                                        <MapPin
+                                          size={17}
+                                          className="text-orange-300"
+                                        />
+                                      )}
+                                    </div>
+
+                                    <div className="flex-1">
+
+                                      <p className="text-white/80">
+                                        {activityText}
+                                      </p>
+
+                                      {time && (
+                                        <p className="text-xs text-white/35 mt-1">
+                                          {time}
+                                        </p>
+                                      )}
+
+                                    </div>
+
+                                  </div>
+                                );
+                              }
+                            )}
+
+                          </div>
+
+                        ) : (
+
+                          <div className="p-5 rounded-xl bg-black/20 text-white/40">
+                            Explore {destination} and
+                            enjoy your day.
+                          </div>
+
+                        )}
+
+                      </motion.div>
+                    )}
+
+                  </motion.div>
+                );
+              })
+
+            ) : (
+
+              <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-8 text-center">
+
+                <Compass
+                  size={35}
+                  className="mx-auto text-orange-400 mb-4"
+                />
+
+                <h3 className="text-xl font-semibold">
+                  Your itinerary is being prepared
+                </h3>
+
+                <p className="text-white/40 mt-2">
+                  The destination details were received,
+                  but no day-by-day itinerary was returned.
+                </p>
+
+              </div>
+
+            )}
+
+          </div>
+        </section>
+
+        {/* ========================================
+            FINAL CTA
+        ======================================== */}
+
+        <motion.section
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{
+            opacity: 1,
+            y: 0,
+          }}
+          viewport={{
+            once: true,
+          }}
+          className="mt-14 rounded-[2rem] border border-orange-400/20 bg-gradient-to-br from-orange-400/10 via-white/[0.03] to-transparent p-8 md:p-12 text-center"
+        >
+
+          <Sparkles
+            className="mx-auto text-orange-400 mb-5"
+            size={28}
+          />
+
+          <h2 className="text-3xl md:text-4xl font-serif">
+            Ready to make this trip real?
+          </h2>
+
+          <p className="text-white/40 mt-3 max-w-lg mx-auto">
+            Pack your bags. The destination is waiting.
+          </p>
+
+          <button
+            onClick={() => navigate("/plan-trip")}
+            className="mt-7 px-7 py-3.5 rounded-full bg-orange-500 hover:bg-orange-400 text-black font-semibold transition-all hover:scale-105"
+          >
+            Plan another adventure
+          </button>
+
+        </motion.section>
+
+      </main>
+    </div>
   );
 }
 
+/* ==========================================
+   SMALL COMPONENTS
+========================================== */
 
-function InfoCard({
-  icon,
-  label,
-  title,
-  subtitle,
-  description,
-}) {
+function InfoPill({ icon: Icon, text }) {
   return (
-    <motion.article
-      whileHover={{ y: -5 }}
-      className="group min-h-[230px] rounded-[26px] border border-white/10 bg-[#0b1b27]/90 p-7 backdrop-blur-2xl transition hover:border-[#e9bd61]/30"
-    >
+    <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/30 border border-white/10 text-sm text-white/70">
+      <Icon
+        size={16}
+        className="text-orange-400"
+      />
+      {text}
+    </div>
+  );
+}
 
-      <div className="flex items-center justify-between">
-
-        <div className="flex items-center gap-3 text-xs uppercase tracking-[0.25em] text-white/40">
-          <span className="text-[#e9bd61]">
-            {icon}
-          </span>
-          {label}
-        </div>
-
-        <ArrowUpRight
-          size={18}
-          className="text-white/20 transition group-hover:text-[#e9bd61]"
-        />
-
-      </div>
-
-      <h3 className="mt-9 font-serif text-3xl">
-        {title}
-      </h3>
-
-      <p className="mt-2 text-sm text-white/60">
-        {subtitle}
-      </p>
-
-      <p className="mt-5 text-sm leading-6 text-white/35">
-        {description}
-      </p>
-
-    </motion.article>
+function InfoCard({ children }) {
+  return (
+    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.035] p-5 md:p-6">
+      {children}
+    </div>
   );
 }
