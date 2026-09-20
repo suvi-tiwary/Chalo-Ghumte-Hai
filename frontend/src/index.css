@@ -56,6 +56,29 @@ button, a { transition: transform .25s ease, background-color .25s ease, color .
 .scene-shade { background: linear-gradient(90deg, rgb(0 0 0 / .78), rgb(0 0 0 / .18) 70%), linear-gradient(0deg, #10110f, transparent 36%); inset: 0; position: absolute; }
 .hero-title { font-family: "Playfair Display", serif; font-size: clamp(4.7rem, 11vw, 9.5rem); letter-spacing: -.07em; line-height: .78; }
 .hero-title span { margin-left: clamp(1.5rem, 7vw, 7rem); }
+.travel-chat { bottom: 1.5rem; position: fixed; right: 1.5rem; z-index: 50; }
+.travel-chat-panel { background: #f7f2e8; border: 1px solid rgb(255 255 255 / .18); box-shadow: 0 24px 70px rgb(0 0 0 / .4); color: #18201d; display: flex; flex-direction: column; height: min(560px, calc(100vh - 7rem)); margin-bottom: .75rem; overflow: hidden; width: min(380px, calc(100vw - 2rem)); }
+.travel-chat-header { align-items: center; background: #152720; color: #f7f2e8; display: flex; gap: .75rem; padding: 1rem 1.1rem; }
+.travel-chat-avatar { align-items: center; background: #e9c46a; color: #152720; display: flex; height: 2.25rem; justify-content: center; width: 2.25rem; }
+.travel-chat-title { font-family: "Playfair Display", serif; font-size: 1.1rem; margin: 0; }
+.travel-chat-status { align-items: center; color: rgb(247 242 232 / .55); display: flex; font-size: .65rem; gap: .35rem; letter-spacing: .08em; margin: .2rem 0 0; text-transform: uppercase; }
+.travel-chat-status span { background: #8bc34a; border-radius: 50%; height: .4rem; width: .4rem; }
+.travel-chat-close { color: rgb(247 242 232 / .65); margin-left: auto; padding: .35rem; }
+.travel-chat-close:hover { color: #e9c46a; }
+.travel-chat-messages { display: flex; flex: 1; flex-direction: column; gap: .7rem; overflow-y: auto; padding: 1rem; }
+.chat-bubble { border-radius: 1rem; font-size: .86rem; line-height: 1.5; max-width: 88%; padding: .75rem .9rem; white-space: pre-wrap; }
+.chat-bubble-assistant { align-self: flex-start; background: #e8e5dc; border-bottom-left-radius: .25rem; }
+.chat-bubble-user { align-self: flex-end; background: #1d4a3b; color: #fff; border-bottom-right-radius: .25rem; }
+.chat-loading { align-items: center; display: flex; gap: .45rem; }
+.chat-loading svg { animation: chat-spin 1s linear infinite; }
+.travel-chat-form { background: #fffdf7; border-top: 1px solid #ded9cf; display: flex; gap: .5rem; padding: .75rem; }
+.travel-chat-form input { background: transparent; border: 0; color: #18201d; flex: 1; font: inherit; font-size: .85rem; min-width: 0; outline: 0; }
+.travel-chat-form button { align-items: center; background: #e9c46a; color: #152720; display: flex; justify-content: center; padding: .7rem; }
+.travel-chat-form button:disabled { cursor: not-allowed; opacity: .45; }
+.travel-chat-launcher { align-items: center; background: #e9c46a; border: 1px solid #f3d98b; box-shadow: 0 10px 30px rgb(0 0 0 / .3); color: #152720; display: flex; font-size: .7rem; font-weight: 700; gap: .55rem; letter-spacing: .14em; padding: .9rem 1.1rem; text-transform: uppercase; }
+.travel-chat-launcher:hover { background: #f3d98b; transform: translateY(-2px); }
+.travel-chat-launcher-open { padding: .85rem; }
+@keyframes chat-spin { to { transform: rotate(360deg); } }
 @media (max-width: 700px) {
   .planner-intro { display: block; }
   .planner-scenes { height: 185px; margin: 3rem 0 -1rem; transform: scale(.82); transform-origin: left center; }
@@ -63,6 +86,7 @@ button, a { transition: transform .25s ease, background-color .25s ease, color .
   .result-hero { min-height: 470px; padding: 1.5rem; }
   .result-hero-caption { bottom: 1.5rem; right: 1.25rem; }
   .result-panel { padding: 1.5rem; }
+  .travel-chat { bottom: 1rem; right: 1rem; }
 }
 
 

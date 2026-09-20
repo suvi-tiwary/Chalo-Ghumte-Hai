@@ -4,7 +4,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from main import plan_trip
+try:
+    from .main import askllm, plan_trip
+except ImportError:
+    from main import askllm, plan_trip
 
 
 logger = logging.getLogger("chalo-ghumte-hai")
@@ -34,6 +37,11 @@ class TripRequest(BaseModel):
     travelers: int = 1
     travel_type: str = "friends"
     interests: list[str] = []
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[dict[str, str]] = []
 
 
 @app.get("/")
@@ -75,6 +83,22 @@ def create_trip(request: TripRequest):
         raise HTTPException(
             status_code=500,
             detail=f"Trip planning failed: {type(e).__name__}: {e}"
+        )
+
+
+@app.post("/chat")
+def travel_chat(request: ChatRequest):
+    """Answer travel questions while keeping the assistant on-topic."""
+    if not request.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+
+    try:
+        return {"answer": askllm(request.message, request.history)}
+    except Exception as error:
+        logger.exception("Travel chat failed")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Travel chat unavailable: {type(error).__name__}: {error}"
         )
 
 
