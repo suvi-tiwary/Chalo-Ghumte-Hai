@@ -20,6 +20,7 @@ import {
   Utensils,
   Wallet,
 } from "lucide-react";
+import { apiUrl } from "../lib/api";
 
 const interestOptions = [
   { name: "Mountains", icon: Mountain },
@@ -126,7 +127,7 @@ export default function Planner() {
 
     try {
       const response = await fetch(
-        "http://localhost:8000/plan-trip",
+        apiUrl("/plan-trip"),
         {
           method: "POST",
           headers: {

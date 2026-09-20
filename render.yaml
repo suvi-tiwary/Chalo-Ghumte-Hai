@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: chalo-ghumte-hai-ai
+    runtime: python
+    rootDir: AI
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: WEATHER_API_KEY
+        sync: false
+      - key: FRONTEND_ORIGINS
+        value: https://chalo-ghumte-hai.vercel.app

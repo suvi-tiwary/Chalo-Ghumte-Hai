@@ -18,6 +18,7 @@ import Home from "./pages/Home";
 import Planner from "./pages/Planner";
 import TripResult from "./pages/TripResult";
 import Signup from "./pages/signup";
+import { apiUrl } from "./lib/api";
 
 
 function Explore() {
@@ -94,7 +95,7 @@ function TravelChat() {
     try {
 
       const response = await fetch(
-        "http://localhost:8000/chat",
+        apiUrl("/chat"),
         {
           method: "POST",
 
