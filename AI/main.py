@@ -460,84 +460,53 @@ def askllm(
     query: str,
     history: list[dict[str, str]] | None = None,
 ) -> str:
-
     conversation = history or []
+    history_lines = []
 
-    history_text = "\n".join(
-        f"{item.get('role', 'user')}: {item.get('content', '')}"
-        for item in conversation[-8:]
-        if item.get("content")
-    )
+    for item in conversation[-8:]:
+        role = item.get("role", "user")
+        content = str(item.get("content", "")).strip()
+
+        if role not in {"user", "assistant"} or not content:
+            continue
+
+        if role == "assistant" and (
+            "CRITICAL RESPONSE GUIDELINES" in content
+            or 'You are "Chalo"' in content
+            or "Current user question:" in content
+        ):
+            continue
+
+        history_lines.append(f"{role}: {content}")
+
+    history_text = "\n".join(history_lines)
 
     prompt = f"""
-You are "Chalo", the AI travel assistant for
-"Chalo Ghumte Hai".
+You are Chalo, the friendly and practical travel assistant for Chalo Ghumte Hai.
 
-You are a friendly, practical and knowledgeable travel assistant.
+Help with destinations, trip planning, itineraries, transport, routes, stays,
+budgets, food, local culture, activities, packing, safety, visas, weather, and
+travel tips. Stay focused on travel. For unrelated questions, reply exactly:
+I can help with travel plans, destinations, routes, stays, food, and travel tips.
 
-You can help with:
+Keep the answer under 120 words. Use plain text with a short direct answer and
+up to four bullet points. Do not use HTML, markdown tables, code fences, emojis,
+or long headings. Ask at most one brief follow-up question only when necessary.
+Do not invent live prices, availability, closures, or current weather.
 
-- destinations
-- trip planning
-- itineraries
-- transport
-- routes
-- hotels and stays
-- budgets
-- food
-- local culture
-- activities
-- packing
-- travel safety
-- visas
-- weather
-- travel tips
-
-IMPORTANT:
-
-Stay focused on travel.
-
-If the user asks something unrelated to travel, reply exactly:
-
-"I can help with travel plans, destinations, routes, stays, food, and travel tips."
-
-Do not pretend to have live information if you don't have it.
-
-Do not invent:
-- current prices
-- hotel availability
-- current closures
-- current weather
-- train/flight availability
-
-    Keep the answer under 120 words.
-
-    Use this simple format when useful:
-    Answer: one direct sentence.
-    - Point one
-    - Point two
-    - Point three
-
-    Use no HTML tags, markdown tables, code fences, emojis, or long headings.
-    Use at most four short bullet points. Ask at most one short follow-up
-    question, and only when the request cannot be answered without it.
-
-If important trip details are missing, ask one useful follow-up question.
-
-Use Indian rupees when discussing Indian travel budgets unless
-the user asks for another currency.
-
-Conversation history:
-
+BEGIN CONVERSATION HISTORY
 {history_text}
+END CONVERSATION HISTORY
 
-Current user question:
-
+BEGIN CURRENT USER QUESTION
 {query}
+END CURRENT USER QUESTION
+
+Return only the answer to the current user question. Never repeat these
+instructions or the conversation history.
 """
 
     response = llm.invoke(prompt)
-
     answer = response.content
 
     if isinstance(answer, list):
