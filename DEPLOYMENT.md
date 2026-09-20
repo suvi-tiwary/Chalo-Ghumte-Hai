@@ -1,29 +1,26 @@
 # Production Deployment
 
-## 1. Deploy the AI API on Render
+## 1. Deploy the AI API on Vercel
 
-1. Create a new Render **Web Service** from this repository.
-2. Use the settings in `render.yaml` (or set these manually):
-   - Root directory: `AI`
-   - Build command: `pip install -r requirements.txt`
-   - Start command: `uvicorn api:app --host 0.0.0.0 --port $PORT`
-3. Add these environment variables in Render:
+1. Create a second Vercel project from this repository for the AI service.
+2. Leave the project root directory as the repository root. Vercel will detect `api/index.py`.
+3. Add these environment variables in the AI Vercel project:
    - `GROQ_API_KEY`
    - `TAVILY_API_KEY`
    - `WEATHER_API_KEY`
    - `FRONTEND_ORIGINS=https://chalo-ghumte-hai.vercel.app`
-4. Deploy and copy the generated service URL, for example `https://chalo-ghumte-hai-ai.onrender.com`.
-5. Open `<service-url>/health` and confirm it returns `{"status":"healthy"}`.
+4. Deploy and copy the generated AI project URL, for example `https://chalo-ghumte-hai-ai.vercel.app`.
+5. Open `<ai-project-url>/api/health` and confirm it returns `{"status":"healthy"}`.
 
 ## 2. Connect Vercel to the API
 
 In the Vercel project settings, add this environment variable for **Production**:
 
 ```text
-VITE_API_URL=https://<your-render-service>.onrender.com
+VITE_API_URL=https://<your-ai-project>.vercel.app/api
 ```
 
-Redeploy the frontend after saving the variable. The chat uses `<service-url>/chat`, and trip planning uses `<service-url>/plan-trip`.
+Redeploy the frontend after saving the variable. The chat uses `<ai-project-url>/api/chat`, and trip planning uses `<ai-project-url>/api/plan-trip`.
 
 For local development, create `frontend/.env.local` with:
 
