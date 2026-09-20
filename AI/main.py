@@ -1,6 +1,455 @@
+import os
+import json
+import requests
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from langchain_groq import ChatGroq
+from tavily import TavilyClient
+
+
 # ============================================================
-# CHAT AI
+# ENVIRONMENT
 # ============================================================
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+WEATHER_API_KEY = os.getenv("WEATHER_API_KEY")
+
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY is missing from .env")
+
+if not TAVILY_API_KEY:
+    raise ValueError("TAVILY_API_KEY is missing from .env")
+
+if not WEATHER_API_KEY:
+    raise ValueError("WEATHER_API_KEY is missing from .env")
+
+
+# ============================================================
+# FASTAPI APP
+# ============================================================
+
+app = FastAPI(
+    title="Chalo Ghumte Hai AI",
+    description="AI Travel Planner and Travel Assistant",
+    version="1.0.0"
+)
+
+
+# ============================================================
+# CORS
+# ============================================================
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ============================================================
+# AI CLIENTS
+# ============================================================
+
+tavily = TavilyClient(
+    api_key=TAVILY_API_KEY
+)
+
+llm = ChatGroq(
+    model_name="openai/gpt-oss-120b",
+    api_key=GROQ_API_KEY,
+    temperature=0.2,
+)
+
+
+# ============================================================
+# REQUEST MODELS
+# ============================================================
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[ChatMessage] = Field(default_factory=list)
+
+
+class TripRequest(BaseModel):
+    destination: str
+    starting_point: str = "Delhi"
+    days: int = 3
+    budget: int = 10000
+    travelers: int = 1
+    travel_type: str = "balanced"
+    interests: list[str] = Field(default_factory=list)
+
+
+# ============================================================
+# WEATHER
+# ============================================================
+
+def get_weather(city: str) -> str:
+
+    try:
+
+        url = "https://api.openweathermap.org/data/2.5/weather"
+
+        params = {
+            "q": city,
+            "appid": WEATHER_API_KEY,
+            "units": "metric",
+        }
+
+        response = requests.get(
+            url,
+            params=params,
+            timeout=10,
+        )
+
+        response.raise_for_status()
+
+        data = response.json()
+
+        return (
+            f"City: {data['name']}, {data['sys']['country']}\n"
+            f"Temperature: {data['main']['temp']}°C\n"
+            f"Feels like: {data['main']['feels_like']}°C\n"
+            f"Condition: {data['weather'][0]['main']}\n"
+            f"Description: {data['weather'][0]['description']}\n"
+            f"Humidity: {data['main']['humidity']}%\n"
+            f"Wind: {data['wind']['speed']} m/s"
+        )
+
+    except Exception as e:
+
+        return f"Weather unavailable: {str(e)}"
+
+
+# ============================================================
+# DESTINATION SEARCH
+# ============================================================
+
+def search_destination(city: str) -> str:
+
+    try:
+
+        response = tavily.search(
+            query=(
+                f"Best places to visit in {city}. "
+                f"Major attractions, scenic places, "
+                f"hidden gems and important tourist spots."
+            ),
+            search_depth="basic",
+            max_results=3,
+        )
+
+        results = response.get("results", [])
+
+        if not results:
+            return "No destination information found."
+
+        output = []
+
+        for result in results:
+
+            content = result.get("content", "")
+
+            output.append(
+                f"Title: {result.get('title', '')}\n"
+                f"Information: {content[:700]}\n"
+                f"Source: {result.get('url', '')}"
+            )
+
+        return "\n\n".join(output)
+
+    except Exception as e:
+
+        return f"Destination search failed: {str(e)}"
+
+
+# ============================================================
+# ACTIVITIES SEARCH
+# ============================================================
+
+def search_activities(city: str, interests: str) -> str:
+
+    try:
+
+        response = tavily.search(
+            query=(
+                f"Best things to do in {city}. "
+                f"Activities for: {interests}. "
+                f"Include adventure, nature, culture, "
+                f"photography and local experiences."
+            ),
+            search_depth="basic",
+            max_results=3,
+        )
+
+        results = response.get("results", [])
+
+        if not results:
+            return "No activities found."
+
+        output = []
+
+        for result in results:
+
+            content = result.get("content", "")
+
+            output.append(
+                f"Activity: {result.get('title', '')}\n"
+                f"Details: {content[:700]}\n"
+                f"Source: {result.get('url', '')}"
+            )
+
+        return "\n\n".join(output)
+
+    except Exception as e:
+
+        return f"Activity search failed: {str(e)}"
+
+
+# ============================================================
+# ROUTE SEARCH
+# ============================================================
+
+def search_route(starting_point: str, destination: str) -> str:
+
+    try:
+
+        response = tavily.search(
+            query=(
+                f"How to travel from {starting_point} to {destination}. "
+                f"Best practical options by train, bus, flight or car. "
+                f"Approximate travel time and route."
+            ),
+            search_depth="basic",
+            max_results=3,
+        )
+
+        results = response.get("results", [])
+
+        if not results:
+            return "No route information found."
+
+        output = []
+
+        for result in results:
+
+            content = result.get("content", "")
+
+            output.append(
+                f"Route: {result.get('title', '')}\n"
+                f"Information: {content[:700]}\n"
+                f"Source: {result.get('url', '')}"
+            )
+
+        return "\n\n".join(output)
+
+    except Exception as e:
+
+        return f"Route search failed: {str(e)}"
+
+
+# ============================================================
+# TRIP PLANNER
+# ============================================================
+
+def plan_trip(
+    destination: str,
+    starting_point: str,
+    days: int,
+    budget: int,
+    travelers: int,
+    travel_type: str,
+    interests: list[str],
+):
+
+    interests_text = (
+        ", ".join(interests)
+        if interests
+        else "general sightseeing"
+    )
+
+    print("🌤️ Getting weather...")
+
+    weather = get_weather(destination)
+
+    print("📍 Searching destination...")
+
+    destination_info = search_destination(destination)
+
+    print("🎯 Searching activities...")
+
+    activities = search_activities(
+        destination,
+        interests_text,
+    )
+
+    print("🚗 Searching route...")
+
+    route = search_route(
+        starting_point,
+        destination,
+    )
+
+    prompt = f"""
+You are the AI travel planner for "Chalo Ghumte Hai".
+
+Create a practical trip plan using the research data below.
+
+TRIP DETAILS
+
+Destination: {destination}
+Starting Point: {starting_point}
+Days: {days}
+Budget: ₹{budget}
+Travelers: {travelers}
+Travel Type: {travel_type}
+Interests: {interests_text}
+
+
+================ WEATHER ================
+
+{weather}
+
+
+================ DESTINATION ================
+
+{destination_info}
+
+
+================ ACTIVITIES ================
+
+{activities}
+
+
+================ ROUTE ================
+
+{route}
+
+
+================ TASK ================
+
+Create a realistic itinerary.
+
+Requirements:
+
+1. Keep the trip within or reasonably close to the given budget.
+2. Do not invent current weather.
+3. Do not claim estimated prices are exact.
+4. Avoid overcrowding the itinerary.
+5. Consider travel time between places.
+6. Recommend suitable local food.
+7. Include practical travel tips.
+8. Mention warnings where useful.
+9. Use the research above as the primary source.
+10. If information is unavailable, clearly say it is unavailable.
+
+Return ONLY valid JSON.
+
+Use exactly this structure:
+
+{{
+    "destination": "{destination}",
+    "trip_summary": "",
+
+    "weather": {{
+        "temperature": "",
+        "condition": "",
+        "summary": ""
+    }},
+
+    "route": {{
+        "summary": "",
+        "recommended_transport": ""
+    }},
+
+    "highlights": [],
+
+    "food": [],
+
+    "budget": {{
+        "transport": 0,
+        "stay": 0,
+        "food": 0,
+        "activities": 0,
+        "miscellaneous": 0,
+        "total": 0
+    }},
+
+    "itinerary": [
+        {{
+            "day": 1,
+            "title": "",
+            "activities": [
+                {{
+                    "time": "",
+                    "place": "",
+                    "description": ""
+                }}
+            ]
+        }}
+    ],
+
+    "travel_tips": [],
+
+    "warnings": []
+}}
+"""
+
+    print("🤖 Generating itinerary...")
+
+    response = llm.invoke(prompt)
+
+    final_response = response.content
+
+    if isinstance(final_response, list):
+
+        final_response = "".join(
+            item.get("text", "")
+            for item in final_response
+            if isinstance(item, dict)
+        )
+
+    final_response = str(final_response).strip()
+
+    # Remove markdown code fences
+    if final_response.startswith("```json"):
+        final_response = final_response[7:].strip()
+
+    if final_response.startswith("```"):
+        final_response = final_response[3:].strip()
+
+    if final_response.endswith("```"):
+        final_response = final_response[:-3].strip()
+
+    try:
+
+        return json.loads(final_response)
+
+    except json.JSONDecodeError:
+
+        return {
+            "error": "AI returned invalid JSON",
+            "raw_response": final_response,
+        }
+
+
 
 def askllm(
     query: str,
@@ -16,325 +465,110 @@ def askllm(
     )
 
     prompt = f"""
-You are "Chalo", the AI travel assistant for
-"Chalo Ghumte Hai".
-
-Your job is to give friendly, practical and easy-to-read travel
-answers.
-
-============================================================
-WHAT YOU CAN HELP WITH
-============================================================
-
-You can help users with:
-
-- Destinations
-- Trip planning
-- Itineraries
-- Routes
-- Transport
-- Hotels and stays
-- Budgets
-- Food
-- Local culture
-- Activities
-- Packing
-- Travel safety
-- Visas
-- Weather
-- Travel tips
-- Places to visit
-- Things to do
-- Travel planning suggestions
-
-============================================================
-IMPORTANT: TRAVEL ONLY
-============================================================
-
-Stay focused on travel.
-
-If the user asks something completely unrelated to travel,
-reply exactly:
-
-I can help with travel plans, destinations, routes, stays, food, and travel tips.
-
-Do not discuss unrelated topics.
-
-============================================================
-RESPONSE STYLE
-============================================================
-
-Your responses MUST be:
-
-- Concise
-- Well organised
-- Easy to scan
-- Friendly
-- Practical
-- Useful
-- Mobile-friendly
-
-Do NOT write unnecessarily long answers.
-
-Normally keep your answer between 80 and 180 words.
-
-Only provide a longer answer when the user specifically asks
-for detailed information.
-
-Avoid repeating the same information.
-
-============================================================
-FORMATTING RULES
-============================================================
-
-IMPORTANT:
-
-Return ONLY normal Markdown/plain text.
-
-NEVER return HTML.
-
-NEVER use HTML tags such as:
-
-<div>
-<span>
-<p>
-<br>
-<h1>
-<h2>
-<h3>
-<strong>
-<b>
-<ul>
-<li>
-
-Do not return XML.
-
-Do not wrap the entire answer inside code blocks.
-
-Use Markdown formatting when useful.
-
-Use:
-
-**Bold Heading**
-
-for important section headings.
-
-Use:
-
-- Bullet points
-
-for lists.
-
-Use short paragraphs.
-
-Leave a blank line between sections.
-
-Do NOT make every sentence bold.
-
-Use only 2–5 important headings when necessary.
-
-============================================================
-HEADINGS
-============================================================
-
-Make headings short and clear.
-
-Example:
-
-**Best Places to Visit**
-
-- Mall Road
-- Solang Valley
-- Hadimba Temple
-
-**Travel Tips**
-
-- Start early to avoid crowds.
-- Carry a light jacket.
-- Keep some cash.
-
-Do NOT use huge heading styles such as:
-
-# Heading
-
-## Heading
-
-### Heading
-
-Prefer:
-
-**Heading**
-
-============================================================
-LENGTH CONTROL
-============================================================
-
-Do NOT dump everything you know.
-
-Give the user the most useful information first.
-
-For a simple question:
-→ 3–6 useful points.
-
-For a destination question:
-→ short overview + important places + one or two tips.
-
-For a route question:
-→ transport options + approximate travel time + practical tip.
-
-For a budget question:
-→ simple estimated breakdown.
-
-For a trip-planning question:
-→ give a compact day-wise structure.
-
-============================================================
-TRAVEL INFORMATION ACCURACY
-============================================================
-
-Do NOT pretend to have live information if you don't have it.
-
-Do NOT invent:
-
-- Current prices
-- Hotel availability
-- Current closures
-- Current weather
-- Train availability
-- Flight availability
-- Live traffic
-- Exact travel timings
-
-When information may change, clearly say:
-
-"Check the latest official information before travelling."
-
-If you don't know something, say so instead of making it up.
-
-============================================================
-BUDGET
-============================================================
-
-When discussing Indian travel:
-
-- Use Indian Rupees (₹)
-- Clearly identify prices as approximate when appropriate.
-- Do not claim estimated prices are exact.
-
-Example:
-
-**Approximate Budget**
-
-- Stay: ₹1,500–₹2,500/night
-- Food: ₹500–₹800/day
-- Local transport: ₹500–₹1,000/day
-
-============================================================
-TRAVEL SAFETY
-============================================================
-
-If the user's question involves potentially important safety
-issues, mention the relevant practical warning briefly.
-
-Do not unnecessarily make every answer sound dangerous.
-
-============================================================
-FOLLOW-UP QUESTIONS
-============================================================
-
-If important information is missing, ask ONLY ONE useful
-follow-up question.
-
-For example:
-
-"What is your starting city?"
-
-Do not ask multiple questions at once unless absolutely necessary.
-
-============================================================
-CONVERSATION HISTORY
-============================================================
-
-Use the conversation history to understand context.
-
-Do not unnecessarily repeat previous answers.
-
-Conversation history:
-
+You are "Chalo", the AI travel assistant for "Chalo Ghumte Hai".
+
+You are a friendly, practical, and knowledgeable travel assistant.
+
+You can help with: destinations, trip planning, itineraries, transport, routes, hotels, budgets, food, local culture, activities, packing, travel safety, visas, weather, and travel tips.
+
+CRITICAL RESPONSE GUIDELINES:
+1. BE CONCISE: Keep answers brief and directly to the point. Avoid fluff, long introductions, or unnecessary explanations. Aim for under 200 words unless the user explicitly asks for a detailed breakdown.
+2. USE STRUCTURE: Always organize your response for maximum readability:
+   - Use **Bold Headings** for different sections (e.g., **Top Picks**, **Budget**, **Tips**).
+   - Use bullet points (-) or numbered lists for facts, steps, or recommendations.
+   - Keep paragraphs to a maximum of 2–3 short sentences.
+3. STAY FOCUSED: Strictly answer travel-related queries. Politely decline off-topic questions.
+4. BE ACTIONABLE: Provide practical, direct advice.
+5. CLOSING: End with exactly ONE brief, relevant follow-up question to keep the conversation helpful and engaging.
+
+Conversation History:
 {history_text}
 
-============================================================
-CURRENT USER QUESTION
-============================================================
+User Query: {query}
 
-{query}
-
-============================================================
-FINAL OUTPUT RULES
-============================================================
-
-Before responding, check your answer:
-
-1. No HTML tags.
-2. No XML tags.
-3. No code block around the response.
-4. No unnecessary long paragraphs.
-5. Use short sections.
-6. Use **bold headings** where useful.
-7. Use bullet points for lists.
-8. Keep the answer concise.
-9. Stay focused on travel.
-10. Do not invent live information.
-
-Now answer the user's question.
+Response:
 """
+    
+    # TODO: Replace the line below with your actual LLM API call
+    # return your_llm_client.generate(prompt)
+    return prompt  # Returning prompt for demonstration purposes
 
-    response = llm.invoke(prompt)
+# ============================================================
+# CHAT ENDPOINT
+# ============================================================
 
-    answer = response.content
+@app.post("/chat")
+def chat(request: ChatRequest):
 
-    if isinstance(answer, list):
-        answer = "".join(
-            item.get("text", "")
-            for item in answer
-            if isinstance(item, dict)
+    try:
+
+        answer = askllm(
+            query=request.message,
+            history=[
+                {
+                    "role": item.role,
+                    "content": item.content,
+                }
+                for item in request.history
+            ],
         )
 
-    answer = str(answer).strip()
+        return {
+            "answer": answer
+        }
 
-    # --------------------------------------------------------
-    # BASIC HTML CLEANUP
-    # --------------------------------------------------------
-    # Safety net in case the model still returns HTML.
+    except Exception as e:
 
-    import re
+        print("CHAT ERROR:", repr(e))
 
-    answer = re.sub(
-        r"<br\s*/?>",
-        "\n",
-        answer,
-        flags=re.IGNORECASE
+        raise HTTPException(
+            status_code=500,
+            detail=f"AI chat failed: {str(e)}",
+        )
+
+
+# ============================================================
+# TRIP PLAN ENDPOINT
+# ============================================================
+
+@app.post("/plan-trip")
+def create_trip(request: TripRequest):
+
+    try:
+
+        result = plan_trip(
+            destination=request.destination,
+            starting_point=request.starting_point,
+            days=request.days,
+            budget=request.budget,
+            travelers=request.travelers,
+            travel_type=request.travel_type,
+            interests=request.interests,
+        )
+
+        return result
+
+    except Exception as e:
+
+        print("TRIP ERROR:", repr(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Trip planning failed: {str(e)}",
+        )
+
+
+# ============================================================
+# RUN
+# ============================================================
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
     )
-
-    answer = re.sub(
-        r"</?(p|div|span|strong|b|h1|h2|h3|ul|ol|li)[^>]*>",
-        "",
-        answer,
-        flags=re.IGNORECASE
-    )
-
-    # Remove any remaining HTML tags
-    answer = re.sub(
-        r"<[^>]+>",
-        "",
-        answer
-    )
-
-    # Clean excessive blank lines
-    answer = re.sub(
-        r"\n{3,}",
-        "\n\n",
-        answer
-    )
-
-    return answer.strip()
