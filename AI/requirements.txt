@@ -5,3 +5,5 @@ Tavily
 dotenv
 langchain_mistralai 
 langchain_groq
+fastapi
+uvicorn

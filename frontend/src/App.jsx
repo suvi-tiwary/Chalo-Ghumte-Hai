@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
+import Planner from "./pages/Planner";
+import TripResult from "./pages/TripResult";
 import Signup from "./pages/signup";
 
 function Explore() {
@@ -17,9 +19,11 @@ function App() {
     <BrowserRouter>
       <Routes>
 
-        <Route path="/" element={<Signup />} />
-        <Route path="/signup" element={<Signup />} />
         <Route path="/home" element={<Home />} />
+
+        <Route path="/plan-trip" element={<Planner />} />
+
+        <Route path="/trip" element={<TripResult />} />
 
         <Route
           path="/explore/:destination"
